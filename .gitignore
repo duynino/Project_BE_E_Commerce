@@ -15,6 +15,7 @@ lerna-debug.log*
 
 # dotenv environment variable files
 .env
+.env.*
 .env.development
 .env.test
 .env.production
@@ -23,6 +24,11 @@ lerna-debug.log*
 .temp
 .tmp
 
+
 # Docker files
 docker-compose.yml*
 docker/
+
+# OS generated files
+.DS_Store
+Thumbs.db
