@@ -1,12 +1,12 @@
 {
   "name": "practice",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon",
+    "dev": "npx nodemon server.ts",
     "build": "rimraf ./dist && tsc --noCheck && tsc-alias",
-    "start": "node dist/index.js",
+    "start": "nodemon server.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check .",
@@ -18,7 +18,14 @@
   "description": "",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/lodash": "^4.17.21",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^24.10.2",
+    "@types/nodemailer": "^7.0.5",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -31,5 +38,22 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.49.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bullmq": "^5.66.6",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.9.2",
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.3",
+    "lodash": "^4.17.21",
+    "morgan": "^1.10.1",
+    "nodemailer": "^7.0.12",
+    "pg": "^8.16.3",
+    "redis": "^5.10.0",
+    "typeorm": "^0.3.28"
   }
 }
