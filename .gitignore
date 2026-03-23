@@ -24,4 +24,5 @@ lerna-debug.log*
 .tmp
 
 # Docker files
-docker-compose.yml
+docker-compose.yml*
+docker/
