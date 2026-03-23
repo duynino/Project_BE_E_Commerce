@@ -1,4 +1,4 @@
-# Nestjs specific
+# Nodejs specific
 /dist
 /node_modules
 /build
@@ -22,3 +22,6 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+
+# Docker files
+docker-compose.yml
