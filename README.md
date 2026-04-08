@@ -1,66 +1,139 @@
-# Restful API Web Bán Hàng
+# BE E-Commerce API (Current Status)
 
-## Giới thiệu
+README này mô tả đúng hiện trạng code tại thời điểm hiện tại để bạn biết dự án đang có gì và chưa có gì.
 
-Dự án này là một RESTful API cho hệ thống web bán hàng, được xây dựng bằng các công nghệ hiện đại như NodeJS, Express, PostgreSQL và TypeORM. API này cung cấp các endpoint để quản lý sản phẩm, đơn hàng, người dùng và các chức năng khác liên quan đến việc bán hàng trực tuyến.
+## 1. Tổng quan
 
-## Công nghệ sử dụng
+Backend được xây dựng bằng TypeScript + Express, dùng PostgreSQL (TypeORM) làm database chính, Redis cho cache/queue, và Swagger để xem tài liệu API.
 
-- **NodeJS**: Môi trường runtime JavaScript
-- **Express**: Framework web cho NodeJS
-- **PostgreSQL**: Hệ quản trị cơ sở dữ liệu quan hệ
-- **TypeORM**: ORM (Object-Relational Mapping) cho NodeJS
-- **Redis**: Cơ sở dữ liệu lưu trữ trong bộ nhớ, sử dụng để caching và quản lý session
+### Hiện đã có
 
-## Tính năng chính
+- Auth cơ bản: register, verify email, login, logout, refresh token, forgot/reset/change password.
+- RBAC cơ bản: CRUD Role và Permission.
+- Middleware xác thực JWT và kiểm tra quyền.
+- Queue gửi email bằng BullMQ + Redis (đang xử lý job verify email).
+- Swagger docs từ annotation trong route/controller.
 
-- Quản lý sản phẩm: CRUD, tìm kiếm, lọc
-- Quản lý đơn hàng: Tạo, cập nhật, hủy đơn hàng
-- Xác thực và phân quyền người dùng
-- Quản lý giỏ hàng
-- Quản lý Flash Sale
-- Đánh giá và bình luận sản phẩm
-- Theo dõi đơn hàng
-- Quản lý giao hàng
-- Quản lý thanh toán
-- Và nhiều tính năng khác nữa 
+### Chưa có hoặc mới ở mức khung
 
-## Cơ sở dữ liệu 
-## Cài đặt
+- User API hiện mới có route mẫu `GET /api/users`.
+- Chưa có các module nghiệp vụ e-commerce như sản phẩm, đơn hàng, giỏ hàng, thanh toán...
+- Chưa có migration/seed chính thức.
 
-1. Clone repository:
-   ```
-   git clone https://github.com/duynino/Project_BE_E_Commerce.git
-   ```
+## 2. Công nghệ đang dùng
 
-2. Di chuyển vào thư mục dự án:
-   ```
-   cd your-repo-name
-   ```
+- Node.js + TypeScript
+- Express 5
+- TypeORM + PostgreSQL
+- Redis + BullMQ
+- JWT, bcrypt
+- Joi validation
+- Swagger (swagger-jsdoc + swagger-ui-express)
+- ESLint + Prettier
 
-3. Cài đặt các dependencies:
-   ```
-   npm install
-   ```
+## 3. Cấu trúc module hiện tại
 
-4. Khởi động server:
-   ```
-   npm start
-   ```
+- `server.ts`: khởi tạo app, middleware, router, Swagger, kết nối DB/Redis.
+- `src/routes`: route cho auth, users, roles, permissions.
+- `src/controllers`: xử lý request/response theo từng module.
+- `src/services`: business logic (auth, role, permission, email).
+- `src/models/schemas`: entity TypeORM (users, roles, permissions, role_permission, user_role).
+- `src/middlewares`: middleware auth, permission, error handler.
+- `src/config`: cấu hình DB, Redis, email.
+- `src/utils/queue.ts`: cấu hình queue và worker email.
 
-## API Documentation
+## 4. API đang có
 
-Để xem chi tiết về các endpoint API, vui lòng truy cập `http://localhost:5000/api-docs` sau khi khởi động server.
+Base URL local: `http://localhost:8000`
 
-## Đóng góp
+### Auth (`/api/auth`)
 
-Chúng tôi rất hoan nghênh mọi đóng góp cho dự án. Nếu bạn muốn đóng góp, vui lòng tạo pull request hoặc mở issue để thảo luận về những thay đổi bạn muốn thực hiện.
+- `POST /register`
+- `GET /verify-email`
+- `POST /login`
+- `POST /logout`
+- `POST /refresh-token`
+- `GET /forgot-password`
+- `POST /reset-password`
+- `POST /change-password`
 
-## Giấy phép
+### Roles (`/api/roles`)
 
-Dự án này được phân phối dưới giấy phép MIT. Xem file `LICENSE` để biết thêm chi tiết.
+- `POST /create`
+- `GET /get-all`
+- `GET /:id`
+- `PUT /:id`
+- `DELETE /:id`
 
-## Liên hệ
+### Permissions (`/api/permissions`)
 
-Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ qua email: duyhong0803@gmail.com
+- `POST /create`
+- `GET /get-all`
+- `GET /:id`
+- `PUT /:id`
+- `DELETE /:id`
 
+### Users (`/api/users`)
+
+- `GET /` (route mẫu)
+
+## 5. Yêu cầu môi trường
+
+- Node.js 18+
+- PostgreSQL
+- Redis
+
+## 6. Biến môi trường cần có
+
+Tạo file `.env` với các biến tối thiểu sau (điền giá trị thật theo máy của bạn):
+
+Lưu ý bảo mật:
+
+- Không commit `.env` chứa secret thật lên Git.
+- Nếu bạn từng đẩy `.env` thật lên remote, nên rotate toàn bộ secret ngay.
+
+## 7. Chạy dự án local
+
+1. Cài dependency
+
+```bash
+npm install
+```
+
+2. Chạy Redis bằng Docker Compose (khuyến nghị)
+
+```bash
+docker compose up -d redis
+```
+
+3. Đảm bảo PostgreSQL đang chạy và đã tạo database tương ứng trong `.env`.
+
+4. Chạy server
+
+```bash
+npm run dev
+```
+
+Server chạy ở `http://localhost:8000`.
+
+## 8. Scripts
+
+- `npm run dev`: chạy bằng nodemon với `server.ts`.
+- `npm run start`: chạy nodemon (tương tự môi trường local hiện tại).
+- `npm run build`: build TypeScript ra `dist`.
+- `npm run lint`: kiểm tra lint.
+- `npm run lint:fix`: tự sửa lỗi lint.
+- `npm run prettier`: check format.
+- `npm run prettier:fix`: format code.
+
+## 9. Swagger API Docs
+
+Sau khi chạy server, truy cập:
+
+`http://localhost:8000/api-docs`
+
+## 10. Ghi chú hiện trạng
+
+- Dự án hiện tập trung vào nền tảng auth + role/permission.
+- Một số module e-commerce vẫn chưa triển khai.
+- Có thể cần seed dữ liệu role mặc định (ví dụ `student`) để luồng register hoạt động ổn định.

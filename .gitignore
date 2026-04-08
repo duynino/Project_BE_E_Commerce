@@ -3,6 +3,9 @@
 /node_modules
 /build
 /tmp
+/.pnp
+.pnp.js
+.yarn/install-state.gz
 
 # Logs
 logs
@@ -15,15 +18,14 @@ lerna-debug.log*
 
 # dotenv environment variable files
 .env
-.env.*
 .env.development
 .env.test
 .env.production
+.env*.local
 
 # temp directory
 .temp
 .tmp
-
 
 # Docker files
 docker-compose.yml*
@@ -32,3 +34,14 @@ docker/
 # OS generated files
 .DS_Store
 Thumbs.db
+*.pem
+
+# testing
+/coverage
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

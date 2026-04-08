@@ -7,7 +7,7 @@ import {
   DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
-import { RolePermission } from './role-permission.model';
+import { UserRole } from './user-role.model';
 
 @Entity('users')
 export class User {
@@ -53,18 +53,12 @@ export class User {
   @Column({ type: 'text', nullable: true })
   refreshToken?: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  expiredAt?: Date;
-
   @CreateDateColumn()
   createdAt!: Date;
 
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @DeleteDateColumn()
-  deletedAt?: Date;
-
-  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
-  rolePermissions!: RolePermission[];
+  @OneToMany(() => UserRole, (userRole) => userRole.user)
+  userRoles!: UserRole[];
 }

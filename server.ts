@@ -7,6 +7,8 @@ import Router from './src/index'
 import { AppDataSource } from './src/config/db-config'
 import { defaultErrorHandler } from './src/middlewares/error.middlewares'
 import { redisClient } from'./src/config/redis-config';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swaggerConfig';
 
 const app = express();
 const PORT = process.env.PORT;
@@ -23,6 +25,7 @@ app.use(cors({
 }));
 
 app.use('/', Router);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(defaultErrorHandler);
 
 AppDataSource.initialize()
