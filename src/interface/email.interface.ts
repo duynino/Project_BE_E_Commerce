@@ -1,4 +1,3 @@
-import e from "express";
 import jwt from "jsonwebtoken";
 
 interface emailPayload extends jwt.JwtPayload {

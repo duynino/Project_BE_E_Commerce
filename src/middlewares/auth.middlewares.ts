@@ -9,13 +9,11 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
   try {
     const authHeader = req.headers.authorization
     const token = authHeader?.split(' ')[1]
-    console.log(token)
     if (!token) {
       return res.status(StatusCodes.UNAUTHORIZED).json({ status: StatusCodes.UNAUTHORIZED, message: 'Unauthorized' })
     }
 
     jwt.verify(token, process.env.JWT_SECRET as string, (err, user) => {
-      console.log(err)
       if (err) {
         return res.status(StatusCodes.UNAUTHORIZED).json({ status: StatusCodes.UNAUTHORIZED, message: 'Unauthorized' })
       }
@@ -56,8 +54,7 @@ const checkPermissions = (requiredPermissions: string) => {
         permissions = user.userRoles.flatMap((ur: any) => ur.role.rolePermissions.map((rp: any) => rp.permission.name))
         await redisClient.set(`permissions:${userId}`, JSON.stringify(permissions), { EX: 3600 })
       }
-      
-      const hasPermission = req.user.permissions.includes(requiredPermissions)
+      const hasPermission = permissions.includes(requiredPermissions)
       if (!hasPermission) {
         return res.status(StatusCodes.FORBIDDEN).json({ status: StatusCodes.FORBIDDEN, message: 'Forbidden' })
       }

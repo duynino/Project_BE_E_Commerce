@@ -4,7 +4,7 @@ import { Role } from '~/models/schemas/role.model'
 export class RoleService {
   constructor(private readonly dataSource: DataSource) {}
 
-  async createRole(data: { name: string, description: string, createBy: string }) {
+  async createRole(data: { name: string; description: string; createBy: string }) {
     try {
       const role = await this.dataSource.getRepository(Role).findOne({ where: { name: data.name } })
       if (role) throw new Error('Role already exists')
@@ -18,24 +18,33 @@ export class RoleService {
 
   async getAllRoles(data: any) {
     try {
-      const { page, sortBy, order, pageSize, search } = data
-      const offset = page <= 1 ? 0 : (page - 1) * Number(process.env.LIMIT_PAGE)
-      const limit = Number(pageSize) || Number(process.env.LIMIT_PAGE) || 10
+      const { page = 1, sortBy = 'id', order = 'ASC', pageSize, search } = data
+      const currentPage = Math.max(Number(page) || 1, 1)
+      const currentPageSize = Math.max(Number(pageSize) || Number(process.env.LIMIT_PAGE) || 10, 1)
+      const offset = (currentPage - 1) * currentPageSize
       const where: any = {}
-      if (search) {
-        where.name = Like(`%${search}%`)
+      if (typeof search === 'string' && search.trim()) {
+        where.name = Like(`%${search.trim()}%`)
       }
       const queries = {
         where,
         skip: offset,
-        take: limit,
+        take: currentPageSize,
         order: {
-          [sortBy]: order
+          [sortBy as string]: (order as string).toUpperCase()
         }
       }
-      
+
       const [roles, total] = await this.dataSource.getRepository(Role).findAndCount(queries)
-      return { roles, total }
+      return {
+        roles,
+        pagination: {
+          page: currentPage,
+          pageSize: currentPageSize,
+          total,
+          totalPages: Math.ceil(total / currentPageSize)
+        }
+      }
     } catch (error) {
       throw new Error(`Failed to get all roles: ${(error as Error).message}`)
     }

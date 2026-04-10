@@ -31,10 +31,6 @@ const PERMISSION = {
     CREATE_USER_ROLE: 'create_user_role',
     UPDATE_USER_ROLE: 'update_user_role',
     DELETE_USER_ROLE: 'delete_user_role',
-    //users_permissions
-    VIEW_USERS_PERMISSIONS: 'view_users_permissions',
-    VIEW_USER_PERMISSION: 'view_user_permission',
-    CREATE_USER_PERMISSION: 'create_user_permission',
 
 }
 

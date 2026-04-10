@@ -38,7 +38,7 @@ const roleController = new RoleController(roleService)
  */
 router.use(authenticate)
 
-router.post('/create', /*checkPermissions(PERMISSION.CREATE_ROLE),*/ (req: Request, res: Response) => {
+router.post('/create', checkPermissions(PERMISSION.CREATE_ROLE), (req: Request, res: Response) => {
   return roleController.createRole(req, res)
 })
 

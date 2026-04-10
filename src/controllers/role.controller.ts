@@ -21,8 +21,8 @@ export class RoleController {
 
   async getAllRoles(req: Request, res: Response) {
     try {
-      const roles = await this.roleService.getAllRoles(req.body);
-      return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Roles fetched successfully', data: roles });
+      const { roles, pagination } = await this.roleService.getAllRoles(req.query);
+      return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Get roles successfully', data: roles, pagination });
     } catch (error) {
       return res.status(StatusCodes.BAD_REQUEST).json({ status: StatusCodes.BAD_REQUEST, message: (error as Error).message });
     }
@@ -30,7 +30,7 @@ export class RoleController {
 
   async getRoleById(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const role = await this.roleService.getRoleById(id);
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Role fetched successfully', data: role });
     } catch (error) {
@@ -40,7 +40,7 @@ export class RoleController {
 
   async updateRole(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const { name } = req.body;
       const updatedRole = await this.roleService.updateRole(id, name);
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Role updated successfully', data: updatedRole });
@@ -51,7 +51,7 @@ export class RoleController {
 
   async deleteRole(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const deletedRole = await this.roleService.deleteRole(id);
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Role deleted successfully', data: deletedRole });
     } catch (error) {
