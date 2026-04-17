@@ -10,32 +10,6 @@ const router = Router()
 const roleService = new RoleService(AppDataSource)
 const roleController = new RoleController(roleService)
 
-/**
- * @swagger
- * /api/role:
- *   post:
- *     summary: Tạo role mới
- *     tags: [Role]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - name
- *             properties:
- *               name:
- *                 type: string
- *                 example: "admin"
- *     responses:
- *       200:
- *         description: Role đã được tạo thành công
- *       400:
- *         description: Yêu cầu không hợp lệ
- *       500:
- *         description: Lỗi hệ thống
- */
 router.use(authenticate)
 
 router.post('/create', checkPermissions(PERMISSION.CREATE_ROLE), (req: Request, res: Response) => {

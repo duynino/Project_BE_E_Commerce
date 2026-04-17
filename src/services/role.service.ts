@@ -6,11 +6,13 @@ export class RoleService {
 
   async createRole(data: { name: string; description: string; createBy: string }) {
     try {
-      const role = await this.dataSource.getRepository(Role).findOne({ where: { name: data.name } })
-      if (role) throw new Error('Role already exists')
-      const newRole = this.dataSource.getRepository(Role).create(data)
-      await this.dataSource.getRepository(Role).save(newRole)
-      return newRole
+      return await this.dataSource.transaction(async (manager) => {
+        const role = await manager.findOne(Role, { where: { name: data.name } })
+        if (role) throw new Error('Role already exists')
+        const newRole = manager.create(Role, data)
+        await manager.save(newRole)
+        return newRole
+      })
     } catch (error) {
       throw new Error(`Failed to create role: ${(error as Error).message}`)
     }
@@ -62,11 +64,13 @@ export class RoleService {
 
   async updateRole(id: string, name: string) {
     try {
-      const role = await this.dataSource.getRepository(Role).findOne({ where: { id } })
-      if (!role) throw new Error('Role not found')
-      role.name = name
-      await this.dataSource.getRepository(Role).save(role)
-      return role
+      return await this.dataSource.transaction(async (manager) => {
+        const role = await manager.findOne(Role, { where: { id } })
+        if (!role) throw new Error('Role not found')
+        role.name = name
+        await manager.save(role)
+        return role
+      })
     } catch (error) {
       throw new Error(`Failed to update role: ${(error as Error).message}`)
     }
@@ -74,10 +78,12 @@ export class RoleService {
 
   async deleteRole(id: string) {
     try {
-      const role = await this.dataSource.getRepository(Role).findOne({ where: { id } })
-      if (!role) throw new Error('Role not found')
-      await this.dataSource.getRepository(Role).remove(role)
-      return role
+      return await this.dataSource.transaction(async (manager) => {
+        const role = await manager.findOne(Role, { where: { id } })
+        if (!role) throw new Error('Role not found')
+        await manager.remove(role)
+        return role
+      })
     } catch (error) {
       throw new Error(`Failed to delete role: ${(error as Error).message}`)
     }

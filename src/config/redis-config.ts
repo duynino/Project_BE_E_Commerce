@@ -1,11 +1,16 @@
-import { createClient } from 'redis';
+import Redis from 'ioredis';
 
-export const redisClient = createClient({
-  socket: {
-    host: process.env.REDIS_HOST,
-    port: Number(process.env.REDIS_PORT),
-    reconnectStrategy: retries => Math.min(retries * 100, 3000),
-  },
+export const ioredisClient = new Redis({
+  host: process.env.REDIS_HOST,
+  port: Number(process.env.REDIS_PORT),
   password: process.env.REDIS_PASSWORD,
+  retryStrategy: times => Math.min(times * 100, 3000),
 });
 
+ioredisClient.on('connect', () => {
+  console.log('Connected to Redis successfully');
+});
+
+ioredisClient.on('error', (error) => {
+  console.error('Error connecting to Redis:', error);
+});

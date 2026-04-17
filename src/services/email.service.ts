@@ -21,7 +21,6 @@ export class EmailService {
 
   async sendEmail(email: string, token: string): Promise<void> {
     try {
-      // Implement the actual email sending logic here, e.g., using nodemailer or any email service provider
       const url = `${process.env.SERVER_URL}/api/auth/verify-email?token=${token}`;
       const templatePath = path.join(__dirname, '../email-templates/verificationEmailTemplate.html');
       const templateContent = fs.readFileSync(templatePath, 'utf-8');
@@ -34,11 +33,10 @@ export class EmailService {
         subject: 'Email Verification',
         html,
       };
-      
+
       return await this.transporter.sendMail(mailOptions);
     } catch (error) {
       throw new Error(`Failed to send email: ${(error as Error).message}`);
     }
-
   }
 }

@@ -1,0 +1,1108 @@
+openapi: 3.0.3
+info:
+  title: BE E-Commerce API
+  version: 1.0.0
+  description: |
+    OpenAPI specification generated from the current Express/TypeScript implementation.
+
+    Notes:
+    - This spec prioritizes reflecting the routes and payloads currently used by the codebase.
+    - Some endpoints in the implementation are still transitional and not fully RESTful yet.
+    - User module is currently only a placeholder route.
+  contact:
+    name: Backend Team
+servers:
+  - url: http://localhost:8000
+    description: Local development
+tags:
+  - name: Auth
+    description: Authentication and account recovery endpoints
+  - name: Roles
+    description: Role management endpoints protected by JWT and permission checks
+  - name: Permissions
+    description: Permission management endpoints protected by JWT and permission checks
+  - name: Users
+    description: User endpoints currently available in the project
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRegisterRequest'
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthRegisterResponse'
+        '400':
+          description: Invalid input or email already exists
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+        '422':
+          description: Validation error from Joi middleware
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+  /api/auth/verify-email:
+    get:
+      tags:
+        - Auth
+      summary: Verify user email by token
+      operationId: verifyEmail
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Email verification token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate user and issue tokens
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthLoginResponse'
+        '400':
+          description: Invalid credentials or email not verified
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+        '422':
+          description: Validation error from Joi middleware
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+  /api/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout a user
+      description: Current implementation expects `user.id` in the request body instead of deriving it from JWT middleware.
+      operationId: logoutUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessageResponse'
+        '400':
+          description: Logout failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/refresh-token:
+    post:
+      tags:
+        - Auth
+      summary: Issue a new access token from a refresh token
+      operationId: refreshAccessToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Access token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+        '400':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/forgot-password:
+    get:
+      tags:
+        - Auth
+      summary: Trigger forgot password flow
+      description: |
+        The route is currently implemented as `GET`, while the controller reads `email` from `req.body`.
+        For OpenAPI compatibility this spec documents `email` as a query parameter.
+      operationId: forgotPassword
+      parameters:
+        - name: email
+          in: query
+          required: true
+          description: Email address of the account requesting a reset
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: Password reset email queued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessageResponse'
+        '400':
+          description: Forgot password request failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Reset password using a password reset token
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Reset password failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/change-password:
+    post:
+      tags:
+        - Auth
+      summary: Change password for a user
+      description: Current implementation expects `user.id` in the request body.
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Change password failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/roles/create:
+    post:
+      tags:
+        - Roles
+      summary: Create a new role
+      operationId: createRole
+      security:
+        - bearerAuth: []
+      x-required-permission: create_role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCreateRequest'
+      responses:
+        '200':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Create role failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/roles/get-all:
+    get:
+      tags:
+        - Roles
+      summary: Get paginated role list
+      operationId: getAllRoles
+      security:
+        - bearerAuth: []
+      x-required-permission: view_roles
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Roles fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleListResponse'
+        '400':
+          description: Fetch roles failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/roles/{id}:
+    get:
+      tags:
+        - Roles
+      summary: Get a role by id
+      operationId: getRoleById
+      security:
+        - bearerAuth: []
+      x-required-permission: view_roles
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      responses:
+        '200':
+          description: Role fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Role not found or fetch failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Roles
+      summary: Update a role
+      operationId: updateRole
+      security:
+        - bearerAuth: []
+      x-required-permission: update_role
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Update role failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Roles
+      summary: Delete a role
+      operationId: deleteRole
+      security:
+        - bearerAuth: []
+      x-required-permission: delete_role
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      responses:
+        '200':
+          description: Role deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Delete role failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/permissions/create:
+    post:
+      tags:
+        - Permissions
+      summary: Create a new permission
+      operationId: createPermission
+      security:
+        - bearerAuth: []
+      x-required-permission: create_permission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionCreateRequest'
+      responses:
+        '200':
+          description: Permission created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionResponse'
+        '400':
+          description: Create permission failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/permissions/get-all:
+    get:
+      tags:
+        - Permissions
+      summary: Get permission list
+      description: The current controller forwards `req.body` to the service, but this spec documents the intended query parameters.
+      operationId: getAllPermissions
+      security:
+        - bearerAuth: []
+      x-required-permission: view_permissions
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Permissions fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionListResponse'
+        '400':
+          description: Fetch permissions failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/permissions/{id}:
+    get:
+      tags:
+        - Permissions
+      summary: Get a permission by id
+      operationId: getPermissionById
+      security:
+        - bearerAuth: []
+      x-required-permission: view_permissions
+      parameters:
+        - $ref: '#/components/parameters/PermissionId'
+      responses:
+        '200':
+          description: Permission fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionResponse'
+        '400':
+          description: Permission not found or fetch failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Permissions
+      summary: Update a permission
+      operationId: updatePermission
+      security:
+        - bearerAuth: []
+      x-required-permission: update_permission
+      parameters:
+        - $ref: '#/components/parameters/PermissionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionUpdateRequest'
+      responses:
+        '200':
+          description: Permission updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionResponse'
+        '400':
+          description: Update permission failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Permissions
+      summary: Delete a permission
+      operationId: deletePermission
+      security:
+        - bearerAuth: []
+      x-required-permission: delete_permission
+      parameters:
+        - $ref: '#/components/parameters/PermissionId'
+      responses:
+        '200':
+          description: Permission deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionResponse'
+        '400':
+          description: Delete permission failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User lacks required permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/users:
+    get:
+      tags:
+        - Users
+      summary: Placeholder get all users endpoint
+      description: Current implementation returns plain text only.
+      operationId: getUsersPlaceholder
+      responses:
+        '200':
+          description: Placeholder response
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Get all users
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    RoleId:
+      name: id
+      in: path
+      required: true
+      description: Role identifier
+      schema:
+        type: string
+        format: uuid
+    PermissionId:
+      name: id
+      in: path
+      required: true
+      description: Permission identifier
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 10
+    Search:
+      name: search
+      in: query
+      required: false
+      schema:
+        type: string
+    SortBy:
+      name: sortBy
+      in: query
+      required: false
+      schema:
+        type: string
+        default: id
+    Order:
+      name: order
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - ASC
+          - DESC
+        default: ASC
+  schemas:
+    User:
+      type: object
+      description: |
+        User entity shape inferred from the TypeORM model.
+        Sensitive fields are included because some current controller responses return the entity directly.
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 1d3b1806-6c68-4a59-8569-96b9d1fcf8ff
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          nullable: true
+          example: $2b$10$abcdefghijklmnopqrstuv
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        gender:
+          type: integer
+          nullable: true
+          example: 1
+        age:
+          type: integer
+          nullable: true
+          example: 24
+        phoneNumber:
+          type: string
+          nullable: true
+          example: '0901234567'
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+        address:
+          type: string
+          nullable: true
+          example: Ho Chi Minh City
+        googleId:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+          format: uri
+        isVerified:
+          type: boolean
+          example: true
+        refreshToken:
+          type: string
+          nullable: true
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Role:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: admin
+        description:
+          type: string
+          nullable: true
+          example: System administrator role
+        createBy:
+          type: string
+          nullable: true
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+    Permission:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: create_role
+        description:
+          type: string
+          nullable: true
+          example: Allow creating a role
+        createBy:
+          type: string
+          nullable: true
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuthRegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          minLength: 6
+          example: StrongPassword123!
+    AuthLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          example: StrongPassword123!
+    LogoutRequest:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+              format: uuid
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - newPassword
+        - confirmPassword
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+          minLength: 6
+        confirmPassword:
+          type: string
+          minLength: 6
+    ChangePasswordRequest:
+      type: object
+      required:
+        - user
+        - oldPassword
+        - newPassword
+        - confirmPassword
+      properties:
+        user:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+              format: uuid
+        oldPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 6
+        confirmPassword:
+          type: string
+          minLength: 6
+    RoleCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: manager
+        description:
+          type: string
+          nullable: true
+          example: Store manager role
+    RoleUpdateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: content_manager
+    PermissionCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: create_permission
+        description:
+          type: string
+          nullable: true
+          example: Allow creating permissions
+    PermissionUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: update_permission
+        description:
+          type: string
+          nullable: true
+          example: Allow updating permissions
+    AuthRegisterData:
+      type: object
+      properties:
+        emailVerificationToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.verify
+    AuthLoginData:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.access
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh
+    RefreshTokenData:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new-access
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 42
+        totalPages:
+          type: integer
+          example: 5
+    ErrorResponse:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Invalid email or password
+    ValidationErrorResponse:
+      type: object
+      required:
+        - status
+        - message
+        - errors
+      properties:
+        status:
+          type: integer
+          example: 422
+        message:
+          type: string
+          example: Validation error
+        errors:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: Email must be a valid email address
+    SuccessMessageResponse:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Operation completed successfully
+    AuthRegisterResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessMessageResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AuthRegisterData'
+    AuthLoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessMessageResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AuthLoginData'
+    RefreshTokenResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessMessageResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RefreshTokenData'
+    UserResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessMessageResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/User'
+    RoleResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessMessageResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Role'
+    PermissionResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessMessageResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Permission'
+    RoleListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessMessageResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Role'
+            pagination:
+              $ref: '#/components/schemas/PaginationMeta'
+    PermissionListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessMessageResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                permissions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Permission'
+                total:
+                  type: integer
+                  example: 42
+                

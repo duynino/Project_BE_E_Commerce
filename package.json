@@ -7,6 +7,7 @@
     "dev": "npx nodemon server.ts",
     "build": "rimraf ./dist && tsc --noCheck && tsc-alias",
     "start": "nodemon server.ts",
+    "start:prod": "cross-env NODE_ENV=production node dist/server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check .",
@@ -24,10 +25,12 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash": "^4.17.21",
     "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.1.0",
     "@types/node": "^24.10.2",
     "@types/nodemailer": "^7.0.5",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -48,6 +51,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bullmq": "^5.66.6",
+    "cloudinary": "^2.9.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
@@ -57,9 +61,11 @@
     "jsonwebtoken": "^9.0.3",
     "lodash": "^4.17.21",
     "morgan": "^1.10.1",
+    "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
     "pg": "^8.16.3",
     "redis": "^5.10.0",
-    "typeorm": "^0.3.28"
+    "typeorm": "^0.3.28",
+    "yaml": "^2.8.3"
   }
 }

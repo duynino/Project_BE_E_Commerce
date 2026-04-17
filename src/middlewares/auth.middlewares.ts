@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { User } from '~/models/schemas/user.model'
 import { AppDataSource } from '~/config/db-config'
-import { redisClient } from '~/config/redis-config'
+import { ioredisClient } from '~/config/redis-config'
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 
@@ -33,13 +33,12 @@ const checkPermissions = (requiredPermissions: string) => {
         return res.status(StatusCodes.UNAUTHORIZED).json({ status: StatusCodes.UNAUTHORIZED, message: 'Unauthorized' })
       }
       const userId = user.userId
-      const cachedPermissions = await redisClient.get(`permissions:${userId}`)
+      const cachedPermissions = await ioredisClient.get(`permissions:${userId}`)
       let permissions: string[] = []
       if (cachedPermissions) {
         permissions = JSON.parse(cachedPermissions)
       } else {
-        const userRepository = AppDataSource.getRepository(User)
-        const user = await userRepository
+        const user = await AppDataSource.getRepository(User)
                     .createQueryBuilder('user')
                     .leftJoinAndSelect('user.userRoles', 'userRole')
                     .leftJoinAndSelect('userRole.role', 'role')
@@ -52,7 +51,7 @@ const checkPermissions = (requiredPermissions: string) => {
           return res.status(StatusCodes.FORBIDDEN).json({ status: StatusCodes.FORBIDDEN, message: 'Forbidden' })
         }
         permissions = user.userRoles.flatMap((ur: any) => ur.role.rolePermissions.map((rp: any) => rp.permission.name))
-        await redisClient.set(`permissions:${userId}`, JSON.stringify(permissions), { EX: 3600 })
+        await ioredisClient.set(`permissions:${userId}`, JSON.stringify(permissions), 'EX', 3600)
       }
       const hasPermission = permissions.includes(requiredPermissions)
       if (!hasPermission) {

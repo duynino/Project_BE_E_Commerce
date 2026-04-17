@@ -59,6 +59,9 @@ export class User {
   @UpdateDateColumn()
   updatedAt!: Date;
 
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
   @OneToMany(() => UserRole, (userRole) => userRole.user)
   userRoles!: UserRole[];
 }
