@@ -32,6 +32,19 @@ const PERMISSION = {
     UPDATE_USER_ROLE: 'update_user_role',
     DELETE_USER_ROLE: 'delete_user_role',
 
+    //categories
+    VIEW_CATEGORIES: 'view_categories',
+    VIEW_CATEGORY: 'view_category',
+    CREATE_CATEGORY: 'create_category',
+    UPDATE_CATEGORY: 'update_category',
+    DELETE_CATEGORY: 'delete_category',
+
+    //items
+    VIEW_ITEMS: 'view_items',
+    VIEW_ITEM: 'view_item',
+    CREATE_ITEM: 'create_item',
+    UPDATE_ITEM: 'update_item',
+    DELETE_ITEM: 'delete_item',
 }
 
 export default PERMISSION;

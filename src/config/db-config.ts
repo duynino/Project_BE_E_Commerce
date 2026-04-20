@@ -5,7 +5,7 @@ dotenv.config();
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Dùng .js trong production (sau khi build), .ts khi dev
-const entityExtension = isProduction ? '*.js' : '*.ts';
+const entityExtension = isProduction ? 'js' : 'ts';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -19,7 +19,7 @@ export const AppDataSource = new DataSource({
   logging: isProduction ? ['error'] : false,
   // dropSchema: true,
   entities: [
-    `${__dirname}/../models/schemas/${entityExtension}`,
+    `${__dirname}/../modules/**/*.model.${entityExtension}`,
   ],
 });
 

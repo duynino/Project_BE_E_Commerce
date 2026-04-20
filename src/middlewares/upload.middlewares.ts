@@ -178,3 +178,57 @@ export const handleUploadError = (
 
   next(error);
 };
+
+/**
+ * Middleware factory: dùng cho update 1 ảnh.
+ * - Nếu không có file mới: bỏ qua, đi tiếp.
+ * - Nếu có file mới: upload Cloudinary, xoá ảnh cũ (nếu có), gắn vào req.uploadedFile.
+ *
+ * @param fieldName - Tên field form-data chứa ảnh mới (default: "image")
+ * @param folder - Thư mục Cloudinary (default: "uploads")
+ * @param getOldPublicId - Hàm lấy publicId ảnh cũ từ request
+ */
+export const handleUpdateImageUpload = (
+  fieldName = 'image',
+  folder = 'uploads',
+  getOldPublicId: (req: Request) => string | undefined = (req) =>
+    req.body?.oldPublicId || req.body?.publicId,
+) => {
+  return [
+    // Chỉ nhận 1 ảnh duy nhất
+    upload.single(fieldName),
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        // Bắt buộc phải có ảnh mới khi gọi API update ảnh
+        if (!req.file) {
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            status: StatusCodes.BAD_REQUEST,
+            message: `Vui lòng upload 1 ảnh ở field "${fieldName}".`,
+          });
+        }
+
+        const oldPublicId = getOldPublicId(req);
+        const uploaded = await uploadToCloudinary(req.file.buffer, folder);
+
+        // Upload mới thành công rồi mới xoá ảnh cũ
+        if (oldPublicId) {
+          try {
+            await deleteFromCloudinary(oldPublicId);
+          } catch {
+            // Không chặn flow nếu xoá ảnh cũ lỗi
+          }
+        }
+
+        (req as any).uploadedFile = uploaded;
+        next();
+      } catch (error) {
+        next(error);
+      }
+    },
+  ];
+};
+
+
+
+
+

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ObjectSchema } from 'joi';
 import HTTP_STATUS from '~/constants/http-status';
-import { EntityError, ErrorWithStatus } from '~/models/schemas/error.model';
+import { EntityError, ErrorWithStatus } from '~/modules/error/error.model';
 
 const validateSchema = (schema: ObjectSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {

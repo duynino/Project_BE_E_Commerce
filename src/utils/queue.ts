@@ -1,6 +1,6 @@
 import { Queue, Worker } from 'bullmq';
-import { EmailController } from '~/controllers/email.controller';
-import { EmailService } from '~/services/email.service';
+import { EmailController } from '~/modules/email/email.controller';
+import { EmailService } from '~/modules/email/email.service';
 
 const emailService = new EmailService();
 const emailController = new EmailController(emailService);
@@ -51,4 +51,4 @@ export {
   emailQueue,
   emailWorker,
   redisConnection,
-};
+};

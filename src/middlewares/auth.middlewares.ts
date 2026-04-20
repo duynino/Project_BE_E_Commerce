@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { User } from '~/models/schemas/user.model'
+import { User } from '~/modules/user/user.model'
 import { AppDataSource } from '~/config/db-config'
 import { ioredisClient } from '~/config/redis-config'
 import { NextFunction, Request, Response } from 'express'
@@ -39,14 +39,14 @@ const checkPermissions = (requiredPermissions: string) => {
         permissions = JSON.parse(cachedPermissions)
       } else {
         const user = await AppDataSource.getRepository(User)
-                    .createQueryBuilder('user')
-                    .leftJoinAndSelect('user.userRoles', 'userRole')
-                    .leftJoinAndSelect('userRole.role', 'role')
-                    .leftJoinAndSelect('role.rolePermissions', 'rolePermission')
-                    .leftJoinAndSelect('rolePermission.permission', 'permission')
-                    .where('user.id = :id', { id: userId })
-                    .getOne();
-                    
+          .createQueryBuilder('user')
+          .leftJoinAndSelect('user.userRoles', 'userRole')
+          .leftJoinAndSelect('userRole.role', 'role')
+          .leftJoinAndSelect('role.rolePermissions', 'rolePermission')
+          .leftJoinAndSelect('rolePermission.permission', 'permission')
+          .where('user.id = :id', { id: userId })
+          .getOne();
+
         if (!user || !user.userRoles || user.userRoles.length === 0) {
           return res.status(StatusCodes.FORBIDDEN).json({ status: StatusCodes.FORBIDDEN, message: 'Forbidden' })
         }
@@ -57,7 +57,7 @@ const checkPermissions = (requiredPermissions: string) => {
       if (!hasPermission) {
         return res.status(StatusCodes.FORBIDDEN).json({ status: StatusCodes.FORBIDDEN, message: 'Forbidden' })
       }
-      
+
       req.user.permissions = permissions
 
       next()
