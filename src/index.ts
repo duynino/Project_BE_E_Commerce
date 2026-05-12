@@ -5,7 +5,9 @@ import roleRoute from './modules/role/role.router';
 import permissionRoute from './modules/permission/permission.router';
 import categoryRoute from './modules/category/category.router';
 import itemRoute from './modules/item/item.router';
+import itemVariantRoute from './modules/item-variant/item-variant.router';
 import imageRoute from './modules/image/image.router';
+import supplierRoute from './modules/supplier/supplier.router';
 
 const router = Router();
 
@@ -15,6 +17,8 @@ router.use('/api/roles', roleRoute);
 router.use('/api/permissions', permissionRoute);
 router.use('/api/categories', categoryRoute);
 router.use('/api/items', itemRoute);
+router.use('/api/item-variants', itemVariantRoute);
 router.use('/api/images', imageRoute);
+router.use('/api/suppliers', supplierRoute);
 
 export default router;

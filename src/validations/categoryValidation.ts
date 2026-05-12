@@ -6,7 +6,7 @@ export const createCategoryValidation = validation(Joi.object({
   position: Joi.number().optional(),
   bannerImage: Joi.string().optional(), // Or bannerImageKey if uploading via Cloudinary directly
   status: Joi.string().optional(),
-  parent_id: Joi.string().uuid().optional(),
+  parent_id: Joi.string().uuid().allow(null).optional(),
 }));
 
 export const updateCategoryValidation = validation(Joi.object({
@@ -14,5 +14,5 @@ export const updateCategoryValidation = validation(Joi.object({
   position: Joi.number().optional(),
   bannerImage: Joi.string().optional(),
   status: Joi.string().optional(),
-  parent_id: Joi.string().uuid().optional(),
+  parent_id: Joi.string().uuid().allow(null).optional(),
 }));

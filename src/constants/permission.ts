@@ -45,6 +45,27 @@ const PERMISSION = {
     CREATE_ITEM: 'create_item',
     UPDATE_ITEM: 'update_item',
     DELETE_ITEM: 'delete_item',
+
+    //images
+    VIEW_IMAGES: 'view_images',
+    VIEW_IMAGE: 'view_image',
+    CREATE_IMAGE: 'create_image',
+    UPDATE_IMAGE: 'update_image',
+    DELETE_IMAGE: 'delete_image',
+
+    //item variants
+    VIEW_ITEM_VARIANTS: 'view_item_variants',
+    VIEW_ITEM_VARIANT: 'view_item_variant',
+    CREATE_ITEM_VARIANT: 'create_item_variant',
+    UPDATE_ITEM_VARIANT: 'update_item_variant',
+    DELETE_ITEM_VARIANT: 'delete_item_variant',
+
+    //suppliers
+    VIEW_SUPPLIERS: 'view_suppliers',
+    VIEW_SUPPLIER: 'view_supplier',
+    CREATE_SUPPLIER: 'create_supplier',
+    UPDATE_SUPPLIER: 'update_supplier',
+    DELETE_SUPPLIER: 'delete_supplier',
 }
 
 export default PERMISSION;

@@ -1,11 +1,11 @@
-import { DataSource } from 'typeorm';
-import dotenv from 'dotenv';
-dotenv.config();
+import { DataSource } from 'typeorm'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === 'production'
 
 // Dùng .js trong production (sau khi build), .ts khi dev
-const entityExtension = isProduction ? 'js' : 'ts';
+const entityExtension = isProduction ? 'js' : 'ts'
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -15,12 +15,9 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   // Không dùng synchronize trong production — dùng migrations thay thế
-  // synchronize: !isProduction,
+  //synchronize: !isProduction,
   logging: isProduction ? ['error'] : false,
   // dropSchema: true,
-  entities: [
-    `${__dirname}/../modules/**/*.model.${entityExtension}`,
-  ],
-});
-
-
+  entities: [`${__dirname}/../modules/**/*.model.${entityExtension}`],
+  migrations: [`${__dirname}/../migrations/*.${entityExtension}`]
+})

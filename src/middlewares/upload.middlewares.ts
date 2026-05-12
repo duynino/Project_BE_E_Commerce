@@ -3,36 +3,46 @@ import { Request, Response, NextFunction } from 'express';
 import { v2 as cloudinary, UploadApiOptions } from 'cloudinary';
 import { StatusCodes } from 'http-status-codes';
 
-// ──────────────────────────────────────────────
-// Constants
-// ──────────────────────────────────────────────
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
 
-// ──────────────────────────────────────────────
-// Multer — memory storage (buffer → Cloudinary stream)
-// ──────────────────────────────────────────────
+export const CLOUDINARY_FOLDERS = {
+  AVATAR: 'vmo/avatar',
+  CATEGORY: 'vmo/category',
+  PRODUCT: 'vmo/product',
+  UPLOADS: 'vmo/uploads',
+} as const;
+
 const storage = multer.memoryStorage();
 
 const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
     cb(null, true);
-  } else {
-    cb(new Error(`Unsupported file type. Allowed: ${ALLOWED_MIME_TYPES.join(', ')}`));
+    return;
   }
+
+  cb(
+    new Error(
+      `Unsupported file type. Allowed: ${ALLOWED_MIME_TYPES.join(', ')}`,
+    ),
+  );
 };
 
 export const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+  limits: {
+    fileSize: MAX_FILE_SIZE_BYTES,
+  },
 });
 
-// ──────────────────────────────────────────────
-// Cloudinary Upload Helper
-// ──────────────────────────────────────────────
 export interface CloudinaryUploadResult {
   url: string;
   publicId: string;
@@ -42,15 +52,9 @@ export interface CloudinaryUploadResult {
   bytes: number;
 }
 
-/**
- * Upload a file buffer to Cloudinary via stream.
- * @param buffer   - File buffer from multer memoryStorage.
- * @param folder   - Cloudinary folder to organise assets (e.g. "products", "avatars").
- * @param publicId - Optional custom public_id; Cloudinary auto-generates one if omitted.
- */
 export const uploadToCloudinary = (
   buffer: Buffer,
-  folder: string,
+  folder: string = CLOUDINARY_FOLDERS.UPLOADS,
   publicId?: string,
 ): Promise<CloudinaryUploadResult> => {
   return new Promise((resolve, reject) => {
@@ -60,54 +64,52 @@ export const uploadToCloudinary = (
       ...(publicId ? { public_id: publicId } : {}),
     };
 
-    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
-      if (error || !result) {
-        return reject(error ?? new Error('Cloudinary upload failed'));
-      }
-      resolve({
-        url: result.secure_url,
-        publicId: result.public_id,
-        format: result.format,
-        width: result.width,
-        height: result.height,
-        bytes: result.bytes,
-      });
-    });
+    const stream = cloudinary.uploader.upload_stream(
+      options,
+      (error, result) => {
+        if (error || !result) {
+          reject(error ?? new Error('Cloudinary upload failed'));
+          return;
+        }
+
+        resolve({
+          url: result.secure_url,
+          publicId: result.public_id,
+          format: result.format,
+          width: result.width,
+          height: result.height,
+          bytes: result.bytes,
+        });
+      },
+    );
 
     stream.end(buffer);
   });
 };
 
-/**
- * Delete an asset from Cloudinary by its public_id.
- */
-export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
+export const deleteFromCloudinary = async (
+  publicId: string,
+): Promise<void> => {
   await cloudinary.uploader.destroy(publicId);
 };
 
-// ──────────────────────────────────────────────
-// Express middleware — single image upload
-// Attaches `req.uploadedFile` after successful upload.
-// ──────────────────────────────────────────────
-
-/**
- * Middleware factory: parses a single image field, uploads it to Cloudinary,
- * and attaches the result to `req.uploadedFile`.
- *
- * @param fieldName - The form-data field name for the image (default: "image").
- * @param folder    - Cloudinary folder (default: "uploads").
- *
- * @example
- * router.post('/products', authenticate, handleSingleUpload('image', 'products'), createProduct);
- */
-export const handleSingleUpload = (fieldName = 'image', folder = 'uploads') => {
+export const handleSingleUpload = (
+  fieldName = 'image',
+  folder: string = CLOUDINARY_FOLDERS.UPLOADS,
+) => {
   return [
     upload.single(fieldName),
-    async (req: Request, res: Response, next: NextFunction) => {
+
+    async (req: Request, _res: Response, next: NextFunction) => {
       try {
-        if (!req.file) return next(); // No file — route handler decides whether it's required
+        if (!req.file) {
+          return next();
+        }
+
         const result = await uploadToCloudinary(req.file.buffer, folder);
+
         (req as any).uploadedFile = result;
+
         next();
       } catch (error) {
         next(error);
@@ -116,29 +118,28 @@ export const handleSingleUpload = (fieldName = 'image', folder = 'uploads') => {
   ];
 };
 
-/**
- * Middleware factory: parses multiple image fields, uploads them to Cloudinary,
- * and attaches the results array to `req.uploadedFiles`.
- *
- * @param fieldName - The form-data field name for files (default: "images").
- * @param maxCount  - Maximum number of files allowed (default: 10).
- * @param folder    - Cloudinary folder (default: "uploads").
- *
- * @example
- * router.post('/gallery', authenticate, handleMultipleUpload('images', 5, 'gallery'), createGallery);
- */
-export const handleMultipleUpload = (fieldName = 'images', maxCount = 10, folder = 'uploads') => {
+export const handleMultipleUpload = (
+  fieldName = 'images',
+  maxCount = 10,
+  folder: string = CLOUDINARY_FOLDERS.UPLOADS,
+) => {
   return [
     upload.array(fieldName, maxCount),
-    async (req: Request, res: Response, next: NextFunction) => {
+
+    async (req: Request, _res: Response, next: NextFunction) => {
       try {
         const files = req.files as Express.Multer.File[];
-        if (!files || files.length === 0) return next();
+
+        if (!files || files.length === 0) {
+          return next();
+        }
 
         const results = await Promise.all(
           files.map((file) => uploadToCloudinary(file.buffer, folder)),
         );
+
         (req as any).uploadedFiles = results;
+
         next();
       } catch (error) {
         next(error);
@@ -147,10 +148,84 @@ export const handleMultipleUpload = (fieldName = 'images', maxCount = 10, folder
   ];
 };
 
-/**
- * Multer-specific error handler. Must be placed AFTER the route handler
- * in the middleware chain, or registered as a global error middleware.
- */
+export const handleUpdateImageUpload = (
+  fieldName = 'image',
+  folder: string = CLOUDINARY_FOLDERS.UPLOADS,
+  getOldPublicId: (req: Request) => string | undefined = (req) =>
+    req.body?.oldPublicId || req.body?.publicId,
+) => {
+  return [
+    upload.single(fieldName),
+
+    async (req: Request, _res: Response, next: NextFunction) => {
+      try {
+        if (!req.file) {
+          return next();
+        }
+
+        const oldPublicId = getOldPublicId(req);
+
+        const uploaded = await uploadToCloudinary(
+          req.file.buffer,
+          folder,
+        );
+
+        if (oldPublicId) {
+          try {
+            await deleteFromCloudinary(oldPublicId);
+          } catch {
+            // Old asset cleanup is best-effort only.
+          }
+        }
+
+        (req as any).uploadedFile = uploaded;
+
+        next();
+      } catch (error) {
+        next(error);
+      }
+    },
+  ];
+};
+
+export const applyUploadedFileToBody = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
+  const uploadedFile = (req as any).uploadedFile;
+
+  if (uploadedFile?.url) {
+    req.body = {
+      ...req.body,
+      image: uploadedFile.url,
+      imagePublicId: uploadedFile.publicId,
+    };
+  }
+
+  next();
+};
+
+export const applyUploadedFilesToBody = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
+  const uploadedFiles = (req as any).uploadedFiles as
+    | CloudinaryUploadResult[]
+    | undefined;
+
+  if (uploadedFiles?.length) {
+    req.body = {
+      ...req.body,
+      images: uploadedFiles.map((file) => file.url),
+      imagePublicIds: uploadedFiles.map((file) => file.publicId),
+    };
+  }
+
+  next();
+};
+
 export const handleUploadError = (
   error: unknown,
   _req: Request,
@@ -163,6 +238,7 @@ export const handleUploadError = (
       LIMIT_UNEXPECTED_FILE: 'Unexpected field name for file upload.',
       LIMIT_FILE_COUNT: 'Too many files uploaded.',
     };
+
     return res.status(StatusCodes.BAD_REQUEST).json({
       status: StatusCodes.BAD_REQUEST,
       message: messages[error.code] ?? error.message,
@@ -178,57 +254,3 @@ export const handleUploadError = (
 
   next(error);
 };
-
-/**
- * Middleware factory: dùng cho update 1 ảnh.
- * - Nếu không có file mới: bỏ qua, đi tiếp.
- * - Nếu có file mới: upload Cloudinary, xoá ảnh cũ (nếu có), gắn vào req.uploadedFile.
- *
- * @param fieldName - Tên field form-data chứa ảnh mới (default: "image")
- * @param folder - Thư mục Cloudinary (default: "uploads")
- * @param getOldPublicId - Hàm lấy publicId ảnh cũ từ request
- */
-export const handleUpdateImageUpload = (
-  fieldName = 'image',
-  folder = 'uploads',
-  getOldPublicId: (req: Request) => string | undefined = (req) =>
-    req.body?.oldPublicId || req.body?.publicId,
-) => {
-  return [
-    // Chỉ nhận 1 ảnh duy nhất
-    upload.single(fieldName),
-    async (req: Request, res: Response, next: NextFunction) => {
-      try {
-        // Bắt buộc phải có ảnh mới khi gọi API update ảnh
-        if (!req.file) {
-          return res.status(StatusCodes.BAD_REQUEST).json({
-            status: StatusCodes.BAD_REQUEST,
-            message: `Vui lòng upload 1 ảnh ở field "${fieldName}".`,
-          });
-        }
-
-        const oldPublicId = getOldPublicId(req);
-        const uploaded = await uploadToCloudinary(req.file.buffer, folder);
-
-        // Upload mới thành công rồi mới xoá ảnh cũ
-        if (oldPublicId) {
-          try {
-            await deleteFromCloudinary(oldPublicId);
-          } catch {
-            // Không chặn flow nếu xoá ảnh cũ lỗi
-          }
-        }
-
-        (req as any).uploadedFile = uploaded;
-        next();
-      } catch (error) {
-        next(error);
-      }
-    },
-  ];
-};
-
-
-
-
-

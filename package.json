@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx nodemon server.ts",
-    "build": "rimraf ./dist && tsc --noCheck && tsc-alias",
+    "build": "rimraf ./dist && tsc --noCheck && tsc-alias && node scripts/copy-email-templates.mjs",
     "start": "nodemon server.ts",
     "start:prod": "cross-env NODE_ENV=production node dist/server.js",
     "lint": "eslint .",
@@ -20,6 +20,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
@@ -49,9 +50,14 @@
     "typescript-eslint": "^8.49.0"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.0.0",
+    "@mui/material": "^9.0.0",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.66.6",
     "cloudinary": "^2.9.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",

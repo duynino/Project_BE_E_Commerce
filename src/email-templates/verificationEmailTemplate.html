@@ -1,91 +1,251 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xác minh địa chỉ email</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color:#333;
-      line-height: 1.6;
-      margin: 0;
-      padding: 10px;
-      display: flex ;
-      justify-content: center;
-      align-items: center;
-    }
-    .container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 600px;
-      width: 100%;
-    } 
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Xác minh địa chỉ email</title>
+    <style>
+      @media screen and (max-width: 640px) {
+        .email-shell {
+          padding: 24px 16px !important;
+        }
 
-    .header {
-      background-color: #007BFF;
-      color: white;
-      padding: 10px;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-    .content {
-      padding: 10px;
-    }
+        .email-container {
+          width: 100% !important;
+        }
 
-    .content p {
-      margin: 10px 0;
-    }
-    
-    .content a {
-      display: flex;
-      justify-content: center;
-      text-align: center;
-      margin: 20px 20px;
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-    
-    a {
-      color: white;
-      text-decoration: none;
-    }
+        .email-content {
+          padding: 32px 24px !important;
+        }
 
-    .footer {
-      text-align: center;
-      padding: 10px 0;
-      font-size: 12px;
-      color: #777;
-      
-    }
-    a {
-      color: #007BFF;
-      text-decoration: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-   <div class="header">
-      <h2>Xác minh địa chỉ email</h2>
-   </div>
-   <div class="content">
-      <p>Thân gửi,</p>
-      <p>Cảm ơn bạn đã đăng ký tài khoản trên hệ thống của chúng tôi. Vui lòng nhấp vào liên kết dưới đây để xác minh địa chỉ email của bạn:</p>
-      <p><a href="{{verificationLink}}">Xác minh email</a></p>
-      <p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
-      <p>Trân trọng,</p>
-      <p>Đội ngũ hỗ trợ</p>
-   </div>
-   <div class="footer">
-      <p>&copy; 2026 E-Learning Language. All rights reserved.</p>
-   </div>
-  </div>
-</body>
+        .email-title {
+          font-size: 28px !important;
+          line-height: 34px !important;
+        }
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #fff7f5">
+    <div
+      style="
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        mso-hide: all;
+      "
+    >
+      Cảm ơn bạn đã đăng ký tài khoản. Vui lòng xác minh địa chỉ email để hoàn
+      tất quá trình đăng ký.
+    </div>
+
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      bgcolor="#FFF7F5"
+      style="width: 100%; margin: 0; padding: 0; background-color: #fff7f5"
+    >
+      <tr>
+        <td class="email-shell" align="center" style="padding: 40px 24px">
+          <table
+            role="presentation"
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            align="center"
+            bgcolor="#FFFFFF"
+            class="email-container"
+            style="
+              width: 600px;
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #ffffff;
+              border: 1px solid #f3d4d8;
+              border-radius: 16px;
+              border-collapse: separate;
+              overflow: hidden;
+              box-shadow: 0 14px 36px rgba(122, 38, 56, 0.1);
+            "
+          >
+            <tr>
+              <td align="center" style="padding: 36px 40px 12px 40px">
+                <div
+                  style="
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 700;
+                    color: #e93e68;
+                    text-align: center;
+                  "
+                >
+                  {{brandName}}
+                </div>
+                <table
+                  role="presentation"
+                  width="52"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  align="center"
+                  style="margin: 16px auto 0 auto"
+                >
+                  <tr>
+                    <td
+                      height="3"
+                      bgcolor="#D6A85A"
+                      style="
+                        height: 3px;
+                        line-height: 3px;
+                        font-size: 0;
+                        background-color: #d6a85a;
+                        border-radius: 999px;
+                      "
+                    >
+                      &nbsp;
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                class="email-content"
+                align="center"
+                style="padding: 20px 48px 40px 48px"
+              >
+                <h1
+                  class="email-title"
+                  style="
+                    margin: 0;
+                    font-family: Georgia, 'Times New Roman', serif;
+                    font-size: 32px;
+                    line-height: 38px;
+                    font-weight: 700;
+                    color: #2b2b2b;
+                    text-align: center;
+                  "
+                >
+                  Xác minh địa chỉ email
+                </h1>
+
+                <p
+                  style="
+                    margin: 18px 0 0 0;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    font-size: 16px;
+                    line-height: 26px;
+                    font-weight: 400;
+                    color: #2b2b2b;
+                    text-align: center;
+                  "
+                >
+                  Cảm ơn bạn đã đăng ký tài khoản. Vui lòng xác minh địa chỉ
+                  email để hoàn tất quá trình đăng ký.
+                </p>
+
+                <p
+                  style="
+                    margin: 10px 0 0 0;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    font-size: 14px;
+                    line-height: 22px;
+                    font-weight: 400;
+                    color: #666666;
+                    text-align: center;
+                  "
+                >
+                  Liên kết này có thể hết hạn sau một khoảng thời gian nhất
+                  định.
+                </p>
+
+                <table
+                  role="presentation"
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  align="center"
+                  style="margin: 28px auto 0 auto"
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      bgcolor="#E93E68"
+                      style="
+                        background-color: #e93e68;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 20px rgba(233, 62, 104, 0.25);
+                      "
+                    >
+                      <a
+                        href="{{verificationLink}}"
+                        target="_blank"
+                        style="
+                          display: inline-block;
+                          padding: 14px 28px;
+                          font-family: 'Segoe UI', Arial, sans-serif;
+                          font-size: 16px;
+                          line-height: 20px;
+                          font-weight: 600;
+                          color: #ffffff;
+                          text-align: center;
+                          text-decoration: none;
+                          border-radius: 12px;
+                        "
+                      >
+                        Xác minh email
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td
+                align="center"
+                style="
+                  padding: 22px 40px 30px 40px;
+                  border-top: 1px solid #f3d4d8;
+                "
+              >
+                <p
+                  style="
+                    margin: 0;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    font-size: 13px;
+                    line-height: 20px;
+                    font-weight: 400;
+                    color: #666666;
+                    text-align: center;
+                  "
+                >
+                  Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email.
+                </p>
+                <p
+                  style="
+                    margin: 10px 0 0 0;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    font-size: 12px;
+                    line-height: 18px;
+                    font-weight: 400;
+                    color: #8a7a7d;
+                    text-align: center;
+                  "
+                >
+                  © {{year}} {{brandName}}. All rights reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>

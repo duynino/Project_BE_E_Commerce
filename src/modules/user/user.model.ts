@@ -54,7 +54,10 @@ export class User {
   isVerified!: boolean;
 
   @Column({ type: 'text', nullable: true })
-  refreshToken?: string;
+  refreshToken?: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  expiresAt?: Date | null;
 
   @CreateDateColumn()
   createdAt!: Date;

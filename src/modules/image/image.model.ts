@@ -17,6 +17,10 @@ export class Image {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
+  @Index()
+  @Column({ type: 'varchar', nullable: true })
+  name?: string
+
   @Column({ type: 'varchar', nullable: true })
   publicId?: string
 

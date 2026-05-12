@@ -34,10 +34,10 @@ const emailWorker = new Worker(
         await emailController.sendVerificationEmail(job.data);
         break;
       case 'forgot-password':
-        await emailController.sendVerificationEmail(job.data);
+        await emailController.sendPasswordResetEmail(job.data);
         break;
       default:
-        console.log(`[Queue] No handler for job name: ${job.name}`);
+        throw new Error(`No handler for job name: ${job.name}`);
     }
   },
   { connection: redisConnection },

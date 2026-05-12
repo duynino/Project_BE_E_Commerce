@@ -1,7 +1,7 @@
 const Roles = {
   ADMIN: 'admin',
-  INSTRUCTOR: 'instructor',
-  STUDENT: 'student',
+  MANAGER: 'manager',
+  CUSTOMER: 'customer',
 };
 
 export default Roles;

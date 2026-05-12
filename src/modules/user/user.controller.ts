@@ -14,6 +14,7 @@ export class UserController {
     const uploadedFile = (req as any).uploadedFile;
 
     if (uploadedFile?.url) {
+      payload.publicId = uploadedFile.publicId;
       payload.avatarUrl = uploadedFile.url;
     }
 
@@ -31,7 +32,7 @@ export class UserController {
 
   async getProfileUser(req: Request, res: Response) {
     try {
-      const { userId } = (req as any).user;
+      const userId = (req as any).user?.userId ?? (req as any).user?.id;
       const user = await this.userService.getUserById(userId);
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Profile fetched successfully', data: user });
     } catch (error) {
@@ -41,7 +42,7 @@ export class UserController {
 
   async updateProfileUser(req: Request, res: Response) {
     try {
-      const { userId } = (req as any).user;
+      const userId = (req as any).user?.userId ?? (req as any).user?.id;
       const updatedUser = await this.userService.updateUser(userId, req.body);
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Profile updated successfully', data: updatedUser });
     } catch (error) {
@@ -51,13 +52,13 @@ export class UserController {
 
   async updateAvatarUser(req: Request, res: Response) {
     try {
-      const { userId } = (req as any).user;
+      const userId = (req as any).user?.userId ?? (req as any).user?.id;
       const uploadedFile = (req as any).uploadedFile;
       if (!uploadedFile) {
         return res.status(StatusCodes.BAD_REQUEST).json({ status: StatusCodes.BAD_REQUEST, message: 'No avatar uploaded' });
       }
 
-      const updatedUser = await this.userService.updateUser(userId, { avatarUrl: uploadedFile.url });
+      const updatedUser = await this.userService.updateUser(userId, { avatarUrl: uploadedFile.url, publicId: uploadedFile.publicId });
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Avatar updated successfully', data: updatedUser });
     } catch (error) {
       return res.status(StatusCodes.BAD_REQUEST).json({ status: StatusCodes.BAD_REQUEST, message: (error as Error).message });

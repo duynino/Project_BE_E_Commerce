@@ -1,6 +1,5 @@
 import { DataSource, FindOptionsSelect } from 'typeorm';
 import { User } from './user.model';
-import { ImageService } from '../image/image.service';
 import bcrypt from 'bcrypt';
 
 const USER_SELECT_FIELDS: FindOptionsSelect<User> = {
@@ -16,10 +15,30 @@ const USER_SELECT_FIELDS: FindOptionsSelect<User> = {
   avatarUrl: true,
   isVerified: true,
   createdAt: true,
+  updatedAt: true,
+};
+
+const USER_ID_SELECT: FindOptionsSelect<User> = {
+  id: true,
+};
+
+const GENDER_CODE_BY_VALUE: Record<string, number> = {
+  prefer_not_to_say: 0,
+  male: 1,
+  female: 2,
+  other: 3,
+};
+
+const normalizeGender = (value: unknown) => {
+  if (typeof value === 'string') {
+    return GENDER_CODE_BY_VALUE[value] ?? undefined;
+  }
+
+  return value;
 };
 
 export class UserService {
-  constructor(private dataSource: DataSource, private imageService: ImageService) { }
+  constructor(private dataSource: DataSource) { }
 
   private sanitizeCreatePayload(payload: any) {
     return {
@@ -27,7 +46,7 @@ export class UserService {
       password: payload.password,
       firstName: payload.firstName,
       lastName: payload.lastName,
-      gender: payload.gender,
+      gender: normalizeGender(payload.gender),
       age: payload.age,
       phoneNumber: payload.phoneNumber,
       dateOfBirth: payload.dateOfBirth,
@@ -40,13 +59,12 @@ export class UserService {
     return {
       firstName: payload.firstName,
       lastName: payload.lastName,
-      gender: payload.gender,
+      gender: normalizeGender(payload.gender),
       age: payload.age,
       phoneNumber: payload.phoneNumber,
       dateOfBirth: payload.dateOfBirth,
       address: payload.address,
       avatarUrl: payload.avatarUrl,
-      avatarKey: payload.avatarKey,
     };
   }
 
@@ -80,7 +98,10 @@ export class UserService {
   async createUser(payload: any) {
     return await this.dataSource.transaction(async (manager) => {
       const userPayload = this.sanitizeCreatePayload(payload);
-      const existingUser = await manager.findOne(User, { where: { email: userPayload.email } });
+      const existingUser = await manager.findOne(User, {
+        where: { email: userPayload.email },
+        select: USER_ID_SELECT,
+      });
       if (existingUser) {
         throw new Error('User with this email already exists');
       }
@@ -103,22 +124,19 @@ export class UserService {
 
   async updateUser(id: string, payload: any) {
     return await this.dataSource.transaction(async (manager) => {
-      const user = await manager.findOne(User, { where: { id } });
+      const user = await manager.findOne(User, {
+        where: { id },
+        select: USER_ID_SELECT,
+      });
       if (!user) throw new Error('User not found');
 
-      const { avatarKey, ...updateData } = this.sanitizeUpdatePayload(payload);
-      Object.assign(user, updateData);
+      const updateData = Object.fromEntries(
+        Object.entries(this.sanitizeUpdatePayload(payload)).filter(([, value]) => value !== undefined),
+      );
 
-      if (avatarKey && typeof avatarKey === 'string') {
-        try {
-          const { url } = await this.imageService.moveTemporaryImage(avatarKey, `avatars/${user.id}`);
-          user.avatarUrl = url;
-        } catch (_error) {
-          console.error(`Skipping avatar move for ${avatarKey} due to rename error`);
-        }
+      if (Object.keys(updateData).length > 0) {
+        await manager.update(User, { id }, updateData);
       }
-
-      await manager.save(User, user);
 
       return await manager.findOne(User, {
         where: { id },
@@ -129,10 +147,13 @@ export class UserService {
 
   async deleteUser(id: string) {
     return await this.dataSource.transaction(async (manager) => {
-      const user = await manager.findOne(User, { where: { id } });
+      const user = await manager.findOne(User, {
+        where: { id },
+        select: USER_ID_SELECT,
+      });
       if (!user) throw new Error('User not found');
 
-      await manager.softRemove(User, user);
+      await manager.softDelete(User, { id });
       return { id: user.id };
     });
   }

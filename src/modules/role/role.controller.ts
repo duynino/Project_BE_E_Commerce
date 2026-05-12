@@ -12,6 +12,9 @@ export class RoleController {
     try {
       const { name, description } = req.body;
       const createBy = req.user?.userId;
+      if (!createBy) {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ status: StatusCodes.UNAUTHORIZED, message: 'Unauthorized' });
+      }
       const newRole = await this.roleService.createRole({ name, description, createBy });
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Role created successfully', data: newRole });
     } catch (error) {

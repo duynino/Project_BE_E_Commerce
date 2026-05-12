@@ -1,6 +1,20 @@
 import { DataSource, Like } from 'typeorm'
 import { Permission } from './permission.model'
 import { RolePermission } from '~/modules/role-permission/role-permission.model'
+import { FindOptionsSelect } from 'typeorm'
+
+const PERMISSION_SELECT_FIELDS: FindOptionsSelect<Permission> = {
+  id: true,
+  name: true,
+  description: true,
+  createBy: true,
+  createdAt: true,
+  updatedAt: true,
+}
+
+const PERMISSION_ID_SELECT: FindOptionsSelect<Permission> = {
+  id: true,
+}
 
 export class PermissionService {
   constructor(private readonly dataSource: DataSource) { }
@@ -8,11 +22,11 @@ export class PermissionService {
   async createPermission(data: { name: string, description?: string, createBy?: string }) {
     try {
       return await this.dataSource.transaction(async (manager) => {
-        const permission = await manager.findOne(Permission, { where: { name: data.name } })
+        const permission = await manager.findOne(Permission, { where: { name: data.name }, select: PERMISSION_ID_SELECT })
         if (permission) throw new Error('Permission already exists')
         const newPermission = manager.create(Permission, data)
-        await manager.save(newPermission)
-        return newPermission
+        const savedPermission = await manager.save(newPermission)
+        return await manager.findOne(Permission, { where: { id: savedPermission.id }, select: PERMISSION_SELECT_FIELDS })
       })
     } catch (error) {
       throw new Error(`Failed to create permission: ${(error as Error).message}`)
@@ -44,6 +58,7 @@ export class PermissionService {
         skip: offset,
         take: currentPageSize,
         order: { [sortBy]: (order as string).toUpperCase() },
+        select: PERMISSION_SELECT_FIELDS,
       }
 
       const [permissions, total] = await this.dataSource.getRepository(Permission).findAndCount(queries)
@@ -63,7 +78,7 @@ export class PermissionService {
 
   async getPermissionById(id: string) {
     try {
-      const permission = await this.dataSource.getRepository(Permission).findOne({ where: { id } })
+      const permission = await this.dataSource.getRepository(Permission).findOne({ where: { id }, select: PERMISSION_SELECT_FIELDS })
       if (!permission) throw new Error('Permission not found')
       return permission
     } catch (error) {
@@ -74,12 +89,18 @@ export class PermissionService {
   async updatePermission(id: string, data: { name?: string, description?: string }) {
     try {
       return await this.dataSource.transaction(async (manager) => {
-        const permission = await manager.findOne(Permission, { where: { id } })
+        const permission = await manager.findOne(Permission, { where: { id }, select: PERMISSION_ID_SELECT })
         if (!permission) throw new Error('Permission not found')
-        if (data.name) permission.name = data.name
-        if (data.description !== undefined) permission.description = data.description
-        await manager.save(permission)
-        return permission
+
+        const updateData: any = {}
+        if (data.name) updateData.name = data.name
+        if (data.description !== undefined) updateData.description = data.description
+
+        if (Object.keys(updateData).length > 0) {
+          await manager.update(Permission, { id }, updateData)
+        }
+
+        return await manager.findOne(Permission, { where: { id }, select: PERMISSION_SELECT_FIELDS })
       })
     } catch (error) {
       throw new Error(`Failed to update permission: ${(error as Error).message}`)
@@ -89,11 +110,11 @@ export class PermissionService {
   async deletePermission(id: string) {
     try {
       return await this.dataSource.transaction(async (manager) => {
-        const permission = await manager.findOne(Permission, { where: { id } })
+        const permission = await manager.findOne(Permission, { where: { id }, select: PERMISSION_SELECT_FIELDS })
         if (!permission) throw new Error('Permission not found')
         // Xóa cứng role_permission liên quan (nếu có cascade thì TypeORM tự xử lý)
         await manager.delete(RolePermission, { permissionId: id })
-        await manager.remove(permission)
+        await manager.delete(Permission, { id })
         return permission
       })
     } catch (error) {

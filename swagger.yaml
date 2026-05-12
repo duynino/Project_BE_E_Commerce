@@ -206,7 +206,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-    put:
+    post:
       summary: Cập nhật thông tin người dùng
       description: Cập nhật thông tin tài khoản người dùng.
       tags:

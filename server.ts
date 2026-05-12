@@ -12,6 +12,7 @@ import fs from 'fs'
 import http from 'http'
 import { emailQueue, emailWorker } from './src/utils/queue'
 import './src/config/cloudinary-config'
+import cookieParser from 'cookie-parser'
 
 // Read the OpenAPI specification from a YAML file
 const swaggerDocument = YAML.parse(fs.readFileSync('./swagger.yaml', 'utf8'))
@@ -26,6 +27,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 app.use(helmet())
 app.use(morgan(isProduction ? 'combined' : 'dev'))
 app.use(express.json())
+app.use(cookieParser())
 
 app.use(cors({
   origin: process.env.CLIENT_URL,

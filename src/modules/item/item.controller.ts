@@ -11,7 +11,11 @@ export class ItemController {
 
   async createItem(req: Request, res: Response) {
     try {
-      const newItem = await this.itemService.createItem(req.body);
+      const payload = {
+        ...req.body,
+        uploadedFiles: (req as any).uploadedFiles,
+      };
+      const newItem = await this.itemService.createItem(payload);
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Item created successfully', data: newItem });
     } catch (error) {
       return res.status(StatusCodes.BAD_REQUEST).json({ status: StatusCodes.BAD_REQUEST, message: (error as Error).message });
@@ -40,7 +44,10 @@ export class ItemController {
   async updateItem(req: Request, res: Response) {
     try {
       const { id } = req.params as { id: string };
-      const updatedItem = await this.itemService.updateItem(id, req.body);
+      const payload = {
+        ...req.body,
+      };
+      const updatedItem = await this.itemService.updateItem(id, payload);
       return res.status(StatusCodes.OK).json({ status: StatusCodes.OK, message: 'Item updated successfully', data: updatedItem });
     } catch (error) {
       return res.status(StatusCodes.BAD_REQUEST).json({ status: StatusCodes.BAD_REQUEST, message: (error as Error).message });
